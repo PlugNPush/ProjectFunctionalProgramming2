@@ -35,3 +35,21 @@ lazy val rest = project
       "com.github.tototoshi" %% "scala-csv" % scalaCsvVersion,
     )
   )
+
+
+lazy val rest2 = project
+  .in(file("rest2"))
+  .settings(
+    commonSettings,
+    name := "scala3-mlb-rest2",
+    libraryDependencies ++= Seq(
+      "com.h2database" % "h2" % h2Version,
+      "dev.zio" %% "zio" % zioVersion,
+      "dev.zio" %% "zio-streams" % zioVersion,
+      "dev.zio" %% "zio-schema" % zioSchemaVersion,
+      "dev.zio" %% "zio-jdbc" % zioJdbcVersion,
+      "dev.zio" %% "zio-json" % zioJsonVersion,
+      "dev.zio" %% "zio-http" % zioHtppVersion,
+      "com.github.tototoshi" %% "scala-csv" % scalaCsvVersion,
+    )
+  ).dependsOn(rest)
