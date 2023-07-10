@@ -9,7 +9,7 @@ class MlbApiSpec extends munit.ZSuite {
 
   testZ("should be ok") {
 
-    val req = Request.get(URL(Root / "Hello MLB Fans!"))
+    val req = Request.get(URL(Root / "text"))
     assertZ(app.runZIO(req).isSuccess)
   }
 
