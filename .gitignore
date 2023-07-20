@@ -33,3 +33,4 @@ metals.sbt
 
 # User specifif
 .sbtopts
+.fake

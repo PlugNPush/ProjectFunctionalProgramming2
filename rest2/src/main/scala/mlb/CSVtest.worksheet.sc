@@ -1,9 +1,11 @@
-package mlb
-
+import com.github.tototoshi.csv._
+import java.io.File
+import java.time.LocalDate
 import zio.json._
 import zio.jdbc._
 
-import java.time.LocalDate
+
+import java.sql.Date
 
 object HomeTeams {
 
@@ -203,13 +205,13 @@ import AwayRartingProbs.*
 final case class Game(
     date: GameDate, // date
     season: SeasonYear, // season
-    playoffRound: PlayoffRound, // playoff
+    playoffRound: Option[PlayoffRound], // playoff
     homeTeam: HomeTeam, // team1
     awayTeam: AwayTeam, // team2
-    homeScore: HomeScore, // score1
-    awayScore: AwayScore, // score2
-    homeElo: HomeElo, // elo1_post
-    awayElo: AwayElo, // elo2_post
+    homeScore: Option[HomeScore], // score1
+    awayScore: Option[AwayScore], // score2
+    homeElo: Option[HomeElo], // elo1_post
+    awayElo: Option[AwayElo], // elo2_post
     homeRatingProb: HomeRatingProb, // rating_prob1
     awayRatingProb: AwayRatingProb // rating_prob2
 )
@@ -220,11 +222,11 @@ object Game {
   implicit val gameEncoder: JsonEncoder[Game] = DeriveJsonEncoder.gen[Game]
   implicit val gameDecoder: JsonDecoder[Game] = DeriveJsonDecoder.gen[Game]
 
-  def unapply(game: Game): (GameDate, SeasonYear, PlayoffRound, HomeTeam, AwayTeam, HomeScore, AwayScore, HomeElo, AwayElo, HomeRatingProb, AwayRatingProb) =
+  def unapply(game: Game): (GameDate, SeasonYear, Option[PlayoffRound], HomeTeam, AwayTeam, Option[HomeScore], Option[AwayScore], Option[HomeElo], Option[AwayElo], HomeRatingProb, AwayRatingProb) =
     (game.date, game.season, game.playoffRound, game.homeTeam, game.awayTeam, game.homeScore, game.awayScore, game.homeElo, game.awayElo, game.homeRatingProb, game.awayRatingProb)
 
   // a custom decoder from a tuple
-  type Row = (String, Int, Int, String, String, Int, Int, Double, Double, Double, Double)
+  type Row = (String, Int, Option[Int], String, String, Option[Int], Option[Int], Option[Double], Option[Double], Double, Double)
 
   extension (g:Game)
     def toRow: Row =
@@ -232,36 +234,58 @@ object Game {
       (
         GameDate.unapply(d).toString,
         SeasonYear.unapply(y),
-        PlayoffRound.unapply(p),
+        p.map(PlayoffRound.unapply),
         HomeTeam.unapply(h),
         AwayTeam.unapply(a),
-        HomeScore.unapply(hs),
-        AwayScore.unapply(as),
-        HomeElo.unapply(he),
-        AwayElo.unapply(ae),
+        hs.map(HomeScore.unapply),
+        as.map(AwayScore.unapply),
+        he.map(HomeElo.unapply),
+        ae.map(AwayElo.unapply),
         HomeRatingProb.unapply(hrp),
         AwayRatingProb.unapply(arp)
       )
 
   implicit val jdbcDecoder: JdbcDecoder[Game] = JdbcDecoder[Row]().map[Game] { t =>
-      val (date, season, playoff, home, away, homeScore, awayScore, homeElo, awayElo, homeRatingProb, awayRatingProb) = t
+      val (date, season, maybePlayoff, home, away, maybeHomeScore, maybeAwayScore, maybeHomeElo, maybeAwayElo, homeRatingProb, awayRatingProb) = t
       Game(
         GameDate(LocalDate.parse(date)),
         SeasonYear(season),
-        PlayoffRound(playoff),
+        maybePlayoff.map(PlayoffRound(_)),
         HomeTeam(home),
         AwayTeam(away),
-        HomeScore(homeScore),
-        AwayScore(awayScore),
-        HomeElo(homeElo),
-        AwayElo(awayElo),
+        maybeHomeScore.map(HomeScore(_)),
+        maybeAwayScore.map(AwayScore(_)),
+        maybeHomeElo.map(HomeElo(_)),
+        maybeAwayElo.map(AwayElo(_)),
         HomeRatingProb(homeRatingProb),
         AwayRatingProb(awayRatingProb)
       )
     }
 }
 
-val games: List[Game] = List(
-  Game(GameDate(LocalDate.parse("2021-10-03")), SeasonYear(2023), PlayoffRound(-1), HomeTeam("ATL"), AwayTeam("NYM"), HomeScore(7), AwayScore(0), HomeElo(1529.0), AwayElo(1520.0), HomeRatingProb(0.631), AwayRatingProb(0.369)),
-  Game(GameDate(LocalDate.parse("2021-10-03")), SeasonYear(2023), PlayoffRound(-1), HomeTeam("STL"), AwayTeam("CHC"), HomeScore(4), AwayScore(2), HomeElo(1519.0), AwayElo(1470.0), HomeRatingProb(0.631), AwayRatingProb(0.369))
+
+
+// Create a CSVReader
+println("Importing CSV to Database")
+println("Initializing Reader CSV")
+var reader = CSVReader.open("mlb_elo_latest.csv")
+println("Initialized Reader CSV")
+var lines = reader.allWithHeaders()
+println("Initialized Headers")
+var games = lines.map(row => 
+    Game(
+    GameDate(LocalDate.parse(row("date"))),
+    SeasonYear(row("season").toInt),
+    if (row("playoff").isEmpty) None else Some(PlayoffRound(row("playoff").toInt)),
+    HomeTeam(row("team1")),
+    AwayTeam(row("team2")),
+    if (row("score1").isEmpty) None else Some(HomeScore(row("score1").toInt)),
+    if (row("score2").isEmpty) None else Some(AwayScore(row("score2").toInt)),
+    if (row("elo1_post").isEmpty) None else Some(HomeElo(row("elo1_post").toDouble)),
+    if (row("elo2_post").isEmpty) None else Some(AwayElo(row("elo2_post").toDouble)),
+    HomeRatingProb(row("rating_prob1").toDouble),
+    AwayRatingProb(row("rating_prob2").toDouble)
+    )
 )
+println("Initialized Games")
+games

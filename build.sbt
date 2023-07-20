@@ -6,6 +6,7 @@ val zioSchemaVersion = "0.4.8"
 val zioJdbcVersion = "0.0.2"
 val zioJsonVersion = "0.5.0"
 val zioHtppVersion = "3.0.0-RC2"
+val zioLoggingVersion = "0.5.12"
 
 ThisBuild / organization := "mlb"
 ThisBuild / version := "0.1.0-SNAPSHOT"
@@ -51,5 +52,6 @@ lazy val rest2 = project
       "dev.zio" %% "zio-json" % zioJsonVersion,
       "dev.zio" %% "zio-http" % zioHtppVersion,
       "com.github.tototoshi" %% "scala-csv" % scalaCsvVersion,
+      "dev.zio" %% "zio-logging" % zioLoggingVersion,
     )
   ).dependsOn(rest)
