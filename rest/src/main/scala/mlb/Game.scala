@@ -113,7 +113,7 @@ object Game {
     (game.date, game.season, game.playoffRound, game.homeTeam, game.awayTeam)
 
   // a custom decoder from a tuple
-  type Row = (String, Int, Option[Int], String, String)
+  type Row = (String, Int, Option[String], String, String)
 
   extension (g:Game)
     def toRow: Row =
