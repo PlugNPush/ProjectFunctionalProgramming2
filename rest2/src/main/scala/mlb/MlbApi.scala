@@ -93,23 +93,25 @@ object ApiService {
   def importGames(): ZIO[ZConnectionPool, Throwable, Response] = {
     for {
       _ <- Console.printLine("Importing CSV to Database")
-      reader <- ZIO.succeed(CSVReader.open("../mlb_elo_latest.csv"))
+      reader <- ZIO.succeed(CSVReader.open("../mlb_elo.csv"))
+      _ <- Console.printLine("CSV opened")
       s <- ZStream.fromIterator(reader.iteratorWithHeaders).map[Game](row => 
         Game(
-          GameDate(LocalDate.parse(row("date"))),
-          SeasonYear(row("season").toInt),
-          if (row("playoff").isEmpty) PlayoffRound(-1) else PlayoffRound(row("playoff").toInt),
-          HomeTeam(row("team1")),
-          AwayTeam(row("team2")),
+          if (row("date").isEmpty) GameDate(LocalDate.parse("1900-01-01")) else GameDate(LocalDate.parse(row("date"))),
+          if (row("season").isEmpty) SeasonYear(-1) else SeasonYear(row("season").toInt),
+          if (row("playoff").isEmpty) PlayoffRound("none") else PlayoffRound(row("playoff")),
+          if (row("team1").isEmpty) HomeTeam("XXX") else HomeTeam(row("team1")),
+          if (row("team2").isEmpty) AwayTeam("XXX") else AwayTeam(row("team2")),
           if (row("score1").isEmpty) HomeScore(-1) else HomeScore(row("score1").toInt),
           if (row("score2").isEmpty) AwayScore(-1) else AwayScore(row("score2").toInt),
-          if (row("elo1_post").isEmpty) HomeElo(-1.0) else HomeElo(row("elo1_post").toDouble),
-          if (row("elo2_post").isEmpty) AwayElo(-1) else AwayElo(row("elo2_post").toDouble),
-          HomeRatingProb(row("rating_prob1").toDouble),
-          AwayRatingProb(row("rating_prob2").toDouble)
+          if (row("elo1_post").isEmpty) HomeElo(-1) else HomeElo(row("elo1_post").toFloat),
+          if (row("elo2_post").isEmpty) AwayElo(-1) else AwayElo(row("elo2_post").toFloat),
+          if (row("rating_prob1").isEmpty) HomeRatingProb(-1) else HomeRatingProb(row("rating_prob1").toFloat),
+          if (row("rating_prob2").isEmpty) AwayRatingProb(-1) else AwayRatingProb(row("rating_prob2").toFloat)
           )
         ).grouped(1000).foreach(chunk =>{ 
           for {
+            _ <- Console.printLine("Inserting chunk of " + chunk.size + " rows")
             res <- DataService.insertRows(chunk.toList)
             _ <- Console.printLine("Should insert " + res.rowsUpdated + " rows")
           } yield ()
@@ -140,7 +142,7 @@ object DataService {
 
   val create: ZIO[ZConnectionPool, Throwable, Unit] = transaction {
     execute(
-      sql"DROP TABLE IF EXISTS games; CREATE TABLE IF NOT EXISTS games(date DATE NOT NULL, season_year INT NOT NULL, playoff_round INT, home_team VARCHAR(3), away_team VARCHAR(3), score1 INT, score2 INT, elo1_post DOUBLE, elo2_post DOUBLE, rating_prob1 DOUBLE NOT NULL, rating_prob2 DOUBLE NOT NULL)"
+      sql"DROP TABLE IF EXISTS games; CREATE TABLE IF NOT EXISTS games(date DATE NOT NULL, season_year INT NOT NULL, playoff_round VARCHAR(4), home_team VARCHAR(3), away_team VARCHAR(3), score1 INT, score2 INT, elo1_post FLOAT, elo2_post FLOAT, rating_prob1 FLOAT NOT NULL, rating_prob2 FLOAT NOT NULL)"
     )
   }
 
@@ -158,9 +160,7 @@ object DataService {
 
   // Should be implemented to replace the `val insertRows` example above. Replace `Any` by the proper case class.
   def insertRows(games: List[Game]): ZIO[ZConnectionPool, Throwable, UpdateResult] = {
-    Console.printLine("...")
     val rows: List[Game.Row] = games.map(_.toRow)
-    Console.printLine("row: " + rows)
     transaction {
       insert(
         sql"INSERT INTO games(date, season_year, playoff_round, home_team, away_team, score1, score2, elo1_post, elo2_post, rating_prob1, rating_prob2)".values[Game.Row](rows)

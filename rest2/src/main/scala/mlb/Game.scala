@@ -74,21 +74,18 @@ object SeasonYears {
 
 object PlayoffRounds {
 
-  opaque type PlayoffRound <: Int = Int
+  opaque type PlayoffRound = String
 
   object PlayoffRound {
 
-    def apply(round: Int): PlayoffRound = round
+    def apply(round: String): PlayoffRound = round
 
-    def safe(value: Int): Option[PlayoffRound] =
-      Option.when(value >= 1 && value <= 4)(value)
-
-    def unapply(playoffRound: PlayoffRound): Int = playoffRound
+    def unapply(playoffRound: PlayoffRound): String = playoffRound
   }
 
   given CanEqual[PlayoffRound, PlayoffRound] = CanEqual.derived
-  implicit val playoffRoundEncoder: JsonEncoder[PlayoffRound] = JsonEncoder.int
-  implicit val playoffRoundDEncoder: JsonDecoder[PlayoffRound] = JsonDecoder.int
+  implicit val playoffRoundEncoder: JsonEncoder[PlayoffRound] = JsonEncoder.string
+  implicit val playoffRoundDEncoder: JsonDecoder[PlayoffRound] = JsonDecoder.string
 }
 
 object HomeScores {
@@ -125,66 +122,66 @@ object AwayScores {
 
 object HomeElos {
 
-  opaque type HomeElo = Double
+  opaque type HomeElo = Float
 
   object HomeElo {
 
-    def apply(value: Double): HomeElo = value
+    def apply(value: Float): HomeElo = value
 
-    def unapply(awayElo: HomeElo): Double = awayElo
+    def unapply(awayElo: HomeElo): Float = awayElo
   }
 
   given CanEqual[HomeElo, HomeElo] = CanEqual.derived
-  implicit val awayTeamEncoder: JsonEncoder[HomeElo] = JsonEncoder.double
-  implicit val awayTeamDecoder: JsonDecoder[HomeElo] = JsonDecoder.double
+  implicit val awayTeamEncoder: JsonEncoder[HomeElo] = JsonEncoder.float
+  implicit val awayTeamDecoder: JsonDecoder[HomeElo] = JsonDecoder.float
 }
 
 object AwayElos {
 
-  opaque type AwayElo = Double
+  opaque type AwayElo = Float
 
   object AwayElo {
 
-    def apply(value: Double): AwayElo = value
+    def apply(value: Float): AwayElo = value
 
-    def unapply(awayElo: AwayElo): Double = awayElo
+    def unapply(awayElo: AwayElo): Float = awayElo
   }
 
   given CanEqual[AwayElo, AwayElo] = CanEqual.derived
-  implicit val awayTeamEncoder: JsonEncoder[AwayElo] = JsonEncoder.double
-  implicit val awayTeamDecoder: JsonDecoder[AwayElo] = JsonDecoder.double
+  implicit val awayTeamEncoder: JsonEncoder[AwayElo] = JsonEncoder.float
+  implicit val awayTeamDecoder: JsonDecoder[AwayElo] = JsonDecoder.float
 }
 
 object HomeRartingProbs {
 
-  opaque type HomeRatingProb = Double
+  opaque type HomeRatingProb = Float
 
   object HomeRatingProb {
 
-    def apply(value: Double): HomeRatingProb = value
+    def apply(value: Float): HomeRatingProb = value
 
-    def unapply(awayElo: HomeRatingProb): Double = awayElo
+    def unapply(awayElo: HomeRatingProb): Float = awayElo
   }
 
   given CanEqual[HomeRatingProb, HomeRatingProb] = CanEqual.derived
-  implicit val awayTeamEncoder: JsonEncoder[HomeRatingProb] = JsonEncoder.double
-  implicit val awayTeamDecoder: JsonDecoder[HomeRatingProb] = JsonDecoder.double
+  implicit val awayTeamEncoder: JsonEncoder[HomeRatingProb] = JsonEncoder.float
+  implicit val awayTeamDecoder: JsonDecoder[HomeRatingProb] = JsonDecoder.float
 }
 
 object AwayRartingProbs {
 
-  opaque type AwayRatingProb = Double
+  opaque type AwayRatingProb = Float
 
   object AwayRatingProb {
 
-    def apply(value: Double): AwayRatingProb = value
+    def apply(value: Float): AwayRatingProb = value
 
-    def unapply(awayElo: AwayRatingProb): Double = awayElo
+    def unapply(awayElo: AwayRatingProb): Float = awayElo
   }
 
   given CanEqual[AwayRatingProb, AwayRatingProb] = CanEqual.derived
-  implicit val awayTeamEncoder: JsonEncoder[AwayRatingProb] = JsonEncoder.double
-  implicit val awayTeamDecoder: JsonDecoder[AwayRatingProb] = JsonDecoder.double
+  implicit val awayTeamEncoder: JsonEncoder[AwayRatingProb] = JsonEncoder.float
+  implicit val awayTeamDecoder: JsonDecoder[AwayRatingProb] = JsonDecoder.float
 }
 
 
@@ -224,7 +221,7 @@ object Game {
     (game.date, game.season, game.playoffRound, game.homeTeam, game.awayTeam, game.homeScore, game.awayScore, game.homeElo, game.awayElo, game.homeRatingProb, game.awayRatingProb)
 
   // a custom decoder from a tuple
-  type Row = (String, Int, Int, String, String, Int, Int, Double, Double, Double, Double)
+  type Row = (String, Int, String, String, String, Int, Int, Float, Float, Float, Float)
 
   extension (g:Game)
     def toRow: Row =
@@ -262,6 +259,6 @@ object Game {
 }
 
 val games: List[Game] = List(
-  Game(GameDate(LocalDate.parse("2021-10-03")), SeasonYear(2023), PlayoffRound(-1), HomeTeam("ATL"), AwayTeam("NYM"), HomeScore(7), AwayScore(0), HomeElo(1529.0), AwayElo(1520.0), HomeRatingProb(0.631), AwayRatingProb(0.369)),
-  Game(GameDate(LocalDate.parse("2021-10-03")), SeasonYear(2023), PlayoffRound(-1), HomeTeam("STL"), AwayTeam("CHC"), HomeScore(4), AwayScore(2), HomeElo(1519.0), AwayElo(1470.0), HomeRatingProb(0.631), AwayRatingProb(0.369))
+  Game(GameDate(LocalDate.parse("2021-10-03")), SeasonYear(2023), PlayoffRound("w"), HomeTeam("ATL"), AwayTeam("NYM"), HomeScore(7), AwayScore(0), HomeElo(1529.0), AwayElo(1520.0), HomeRatingProb(0.631), AwayRatingProb(0.369)),
+  Game(GameDate(LocalDate.parse("2021-10-03")), SeasonYear(2023), PlayoffRound("w"), HomeTeam("STL"), AwayTeam("CHC"), HomeScore(4), AwayScore(2), HomeElo(1519.0), AwayElo(1470.0), HomeRatingProb(0.631), AwayRatingProb(0.369))
 )

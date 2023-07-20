@@ -3,6 +3,8 @@ import java.io.File
 import java.time.LocalDate
 import zio.json._
 import zio.jdbc._
+import zio.stream.ZStream
+import zio._
 
 
 import java.sql.Date
@@ -76,21 +78,18 @@ object SeasonYears {
 
 object PlayoffRounds {
 
-  opaque type PlayoffRound <: Int = Int
+  opaque type PlayoffRound = String
 
   object PlayoffRound {
 
-    def apply(round: Int): PlayoffRound = round
+    def apply(round: String): PlayoffRound = round
 
-    def safe(value: Int): Option[PlayoffRound] =
-      Option.when(value >= 1 && value <= 4)(value)
-
-    def unapply(playoffRound: PlayoffRound): Int = playoffRound
+    def unapply(playoffRound: PlayoffRound): String = playoffRound
   }
 
   given CanEqual[PlayoffRound, PlayoffRound] = CanEqual.derived
-  implicit val playoffRoundEncoder: JsonEncoder[PlayoffRound] = JsonEncoder.int
-  implicit val playoffRoundDEncoder: JsonDecoder[PlayoffRound] = JsonDecoder.int
+  implicit val playoffRoundEncoder: JsonEncoder[PlayoffRound] = JsonEncoder.string
+  implicit val playoffRoundDEncoder: JsonDecoder[PlayoffRound] = JsonDecoder.string
 }
 
 object HomeScores {
@@ -127,66 +126,66 @@ object AwayScores {
 
 object HomeElos {
 
-  opaque type HomeElo = Double
+  opaque type HomeElo = Float
 
   object HomeElo {
 
-    def apply(value: Double): HomeElo = value
+    def apply(value: Float): HomeElo = value
 
-    def unapply(awayElo: HomeElo): Double = awayElo
+    def unapply(awayElo: HomeElo): Float = awayElo
   }
 
   given CanEqual[HomeElo, HomeElo] = CanEqual.derived
-  implicit val awayTeamEncoder: JsonEncoder[HomeElo] = JsonEncoder.double
-  implicit val awayTeamDecoder: JsonDecoder[HomeElo] = JsonDecoder.double
+  implicit val awayTeamEncoder: JsonEncoder[HomeElo] = JsonEncoder.float
+  implicit val awayTeamDecoder: JsonDecoder[HomeElo] = JsonDecoder.float
 }
 
 object AwayElos {
 
-  opaque type AwayElo = Double
+  opaque type AwayElo = Float
 
   object AwayElo {
 
-    def apply(value: Double): AwayElo = value
+    def apply(value: Float): AwayElo = value
 
-    def unapply(awayElo: AwayElo): Double = awayElo
+    def unapply(awayElo: AwayElo): Float = awayElo
   }
 
   given CanEqual[AwayElo, AwayElo] = CanEqual.derived
-  implicit val awayTeamEncoder: JsonEncoder[AwayElo] = JsonEncoder.double
-  implicit val awayTeamDecoder: JsonDecoder[AwayElo] = JsonDecoder.double
+  implicit val awayTeamEncoder: JsonEncoder[AwayElo] = JsonEncoder.float
+  implicit val awayTeamDecoder: JsonDecoder[AwayElo] = JsonDecoder.float
 }
 
 object HomeRartingProbs {
 
-  opaque type HomeRatingProb = Double
+  opaque type HomeRatingProb = Float
 
   object HomeRatingProb {
 
-    def apply(value: Double): HomeRatingProb = value
+    def apply(value: Float): HomeRatingProb = value
 
-    def unapply(awayElo: HomeRatingProb): Double = awayElo
+    def unapply(awayElo: HomeRatingProb): Float = awayElo
   }
 
   given CanEqual[HomeRatingProb, HomeRatingProb] = CanEqual.derived
-  implicit val awayTeamEncoder: JsonEncoder[HomeRatingProb] = JsonEncoder.double
-  implicit val awayTeamDecoder: JsonDecoder[HomeRatingProb] = JsonDecoder.double
+  implicit val awayTeamEncoder: JsonEncoder[HomeRatingProb] = JsonEncoder.float
+  implicit val awayTeamDecoder: JsonDecoder[HomeRatingProb] = JsonDecoder.float
 }
 
 object AwayRartingProbs {
 
-  opaque type AwayRatingProb = Double
+  opaque type AwayRatingProb = Float
 
   object AwayRatingProb {
 
-    def apply(value: Double): AwayRatingProb = value
+    def apply(value: Float): AwayRatingProb = value
 
-    def unapply(awayElo: AwayRatingProb): Double = awayElo
+    def unapply(awayElo: AwayRatingProb): Float = awayElo
   }
 
   given CanEqual[AwayRatingProb, AwayRatingProb] = CanEqual.derived
-  implicit val awayTeamEncoder: JsonEncoder[AwayRatingProb] = JsonEncoder.double
-  implicit val awayTeamDecoder: JsonDecoder[AwayRatingProb] = JsonDecoder.double
+  implicit val awayTeamEncoder: JsonEncoder[AwayRatingProb] = JsonEncoder.float
+  implicit val awayTeamDecoder: JsonDecoder[AwayRatingProb] = JsonDecoder.float
 }
 
 
@@ -205,13 +204,13 @@ import AwayRartingProbs.*
 final case class Game(
     date: GameDate, // date
     season: SeasonYear, // season
-    playoffRound: Option[PlayoffRound], // playoff
+    playoffRound: PlayoffRound, // playoff
     homeTeam: HomeTeam, // team1
     awayTeam: AwayTeam, // team2
-    homeScore: Option[HomeScore], // score1
-    awayScore: Option[AwayScore], // score2
-    homeElo: Option[HomeElo], // elo1_post
-    awayElo: Option[AwayElo], // elo2_post
+    homeScore: HomeScore, // score1
+    awayScore: AwayScore, // score2
+    homeElo: HomeElo, // elo1_post
+    awayElo: AwayElo, // elo2_post
     homeRatingProb: HomeRatingProb, // rating_prob1
     awayRatingProb: AwayRatingProb // rating_prob2
 )
@@ -222,11 +221,11 @@ object Game {
   implicit val gameEncoder: JsonEncoder[Game] = DeriveJsonEncoder.gen[Game]
   implicit val gameDecoder: JsonDecoder[Game] = DeriveJsonDecoder.gen[Game]
 
-  def unapply(game: Game): (GameDate, SeasonYear, Option[PlayoffRound], HomeTeam, AwayTeam, Option[HomeScore], Option[AwayScore], Option[HomeElo], Option[AwayElo], HomeRatingProb, AwayRatingProb) =
+  def unapply(game: Game): (GameDate, SeasonYear, PlayoffRound, HomeTeam, AwayTeam, HomeScore, AwayScore, HomeElo, AwayElo, HomeRatingProb, AwayRatingProb) =
     (game.date, game.season, game.playoffRound, game.homeTeam, game.awayTeam, game.homeScore, game.awayScore, game.homeElo, game.awayElo, game.homeRatingProb, game.awayRatingProb)
 
   // a custom decoder from a tuple
-  type Row = (String, Int, Option[Int], String, String, Option[Int], Option[Int], Option[Double], Option[Double], Double, Double)
+  type Row = (String, Int, String, String, String, Int, Int, Float, Float, Float, Float)
 
   extension (g:Game)
     def toRow: Row =
@@ -234,29 +233,29 @@ object Game {
       (
         GameDate.unapply(d).toString,
         SeasonYear.unapply(y),
-        p.map(PlayoffRound.unapply),
+        PlayoffRound.unapply(p),
         HomeTeam.unapply(h),
         AwayTeam.unapply(a),
-        hs.map(HomeScore.unapply),
-        as.map(AwayScore.unapply),
-        he.map(HomeElo.unapply),
-        ae.map(AwayElo.unapply),
+        HomeScore.unapply(hs),
+        AwayScore.unapply(as),
+        HomeElo.unapply(he),
+        AwayElo.unapply(ae),
         HomeRatingProb.unapply(hrp),
         AwayRatingProb.unapply(arp)
       )
 
   implicit val jdbcDecoder: JdbcDecoder[Game] = JdbcDecoder[Row]().map[Game] { t =>
-      val (date, season, maybePlayoff, home, away, maybeHomeScore, maybeAwayScore, maybeHomeElo, maybeAwayElo, homeRatingProb, awayRatingProb) = t
+      val (date, season, playoff, home, away, homeScore, awayScore, homeElo, awayElo, homeRatingProb, awayRatingProb) = t
       Game(
         GameDate(LocalDate.parse(date)),
         SeasonYear(season),
-        maybePlayoff.map(PlayoffRound(_)),
+        PlayoffRound(playoff),
         HomeTeam(home),
         AwayTeam(away),
-        maybeHomeScore.map(HomeScore(_)),
-        maybeAwayScore.map(AwayScore(_)),
-        maybeHomeElo.map(HomeElo(_)),
-        maybeAwayElo.map(AwayElo(_)),
+        HomeScore(homeScore),
+        AwayScore(awayScore),
+        HomeElo(homeElo),
+        AwayElo(awayElo),
         HomeRatingProb(homeRatingProb),
         AwayRatingProb(awayRatingProb)
       )
@@ -264,28 +263,34 @@ object Game {
 }
 
 
-
 // Create a CSVReader
 println("Importing CSV to Database")
 println("Initializing Reader CSV")
-var reader = CSVReader.open("mlb_elo_latest.csv")
+var reader = CSVReader.open("mlb_elo.csv")
 println("Initialized Reader CSV")
-var lines = reader.allWithHeaders()
-println("Initialized Headers")
-var games = lines.map(row => 
-    Game(
-    GameDate(LocalDate.parse(row("date"))),
-    SeasonYear(row("season").toInt),
-    if (row("playoff").isEmpty) None else Some(PlayoffRound(row("playoff").toInt)),
-    HomeTeam(row("team1")),
-    AwayTeam(row("team2")),
-    if (row("score1").isEmpty) None else Some(HomeScore(row("score1").toInt)),
-    if (row("score2").isEmpty) None else Some(AwayScore(row("score2").toInt)),
-    if (row("elo1_post").isEmpty) None else Some(HomeElo(row("elo1_post").toDouble)),
-    if (row("elo2_post").isEmpty) None else Some(AwayElo(row("elo2_post").toDouble)),
-    HomeRatingProb(row("rating_prob1").toDouble),
-    AwayRatingProb(row("rating_prob2").toDouble)
-    )
-)
+
+var games = List[Game]()
+
+reader.iteratorWithHeaders.map[Game](row => 
+        Game(
+          if (row("date").isEmpty) GameDate(LocalDate.parse("1900-01-01")) else GameDate(LocalDate.parse(row("date"))),
+          if (row("season").isEmpty) SeasonYear(-1) else SeasonYear(row("season").toInt),
+          if (row("playoff").isEmpty) PlayoffRound("none") else PlayoffRound(row("playoff")),
+          if (row("team1").isEmpty) HomeTeam("XXX") else HomeTeam(row("team1")),
+          if (row("team2").isEmpty) AwayTeam("XXX") else AwayTeam(row("team2")),
+          if (row("score1").isEmpty) HomeScore(-1) else HomeScore(row("score1").toInt),
+          if (row("score2").isEmpty) AwayScore(-1) else AwayScore(row("score2").toInt),
+          if (row("elo1_post").isEmpty) HomeElo(-1) else HomeElo(row("elo1_post").toFloat),
+          if (row("elo2_post").isEmpty) AwayElo(-1) else AwayElo(row("elo2_post").toFloat),
+          if (row("rating_prob1").isEmpty) HomeRatingProb(-1) else HomeRatingProb(row("rating_prob1").toFloat),
+          if (row("rating_prob2").isEmpty) AwayRatingProb(-1) else AwayRatingProb(row("rating_prob2").toFloat)
+          )
+        ).grouped(1000).foreach(chunk =>{ 
+            println("Should insert " + chunk + " rows")
+            games = games ++ chunk.toList
+        })
+
 println("Initialized Games")
 games
+
+println(games.last.toRow)
