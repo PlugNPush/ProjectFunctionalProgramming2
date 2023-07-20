@@ -45,7 +45,6 @@ object MlbApi extends ZIOAppDefault {
     case Method.GET -> Root / "games" / "latest" / homeTeam / awayTeam =>
       for {
         game: Option[Game] <- latest(HomeTeam(homeTeam), AwayTeam(awayTeam))
-        _ <- Console.printLine("For " + homeTeam + " vs " + awayTeam)
         res: Response = latestGameResponse(game)
       } yield res
     case Method.GET -> Root / "games" / "predict" / homeTeam / awayTeam =>
@@ -70,6 +69,7 @@ object MlbApi extends ZIOAppDefault {
       } yield res
     case Method.GET -> Root / "games" / "lowscore" =>
       for {
+        _ <- Console.printLine("Request received")
         game: Option[Game] <- lowscore()
         res: Response = lowscoreResponse(game)
       } yield res
@@ -245,7 +245,7 @@ object DataService {
   def highscore(): ZIO[ZConnectionPool, Throwable, Option[Game]] = {
     transaction {
       selectOne(
-        sql"SELECT date, season_year, playoff_round, home_team, away_team, score1, score2, elo1_pre, elo2_pre, rating_prob1, rating_prob2 FROM games ORDER BY elo1_pre DESC LIMIT 1".as[Game]
+        sql"SELECT date, season_year, playoff_round, home_team, away_team, score1, score2, elo1_post, elo2_post, rating_prob1, rating_prob2 FROM games WHERE elo1_post != -1 ORDER BY elo1_post DESC LIMIT 1".as[Game]
       )
     }
   }
@@ -253,7 +253,7 @@ object DataService {
   def lowscore(): ZIO[ZConnectionPool, Throwable, Option[Game]] = {
     transaction {
       selectOne(
-        sql"SELECT date, season_year, playoff_round, home_team, away_team, score1, score2, elo1_pre, elo2_pre, rating_prob1, rating_prob2 FROM games ORDER BY elo1_pre ASC LIMIT 1".as[Game]
+        sql"SELECT date, season_year, playoff_round, home_team, away_team, score1, score2, elo1_post, elo2_post, rating_prob1, rating_prob2 FROM games WHERE elo1_post != -1 ORDER BY elo1_post ASC LIMIT 1".as[Game]
       )
     }
   }
