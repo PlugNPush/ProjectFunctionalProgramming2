@@ -30,12 +30,16 @@ Can be useful if you decide to modify some data.
 
 **Example:** `http://localhost:8080/init`
 
+---
+
 ### GET /games/latest/{homeTeam}/{awayTeam}
 
 Returns the most recent game played between the specified home and away teams.  
 
 **Example:** `http://localhost:8080/games/latest/SEA/ANA`  
 ![exemple](images/2.png)
+
+---
 
 ### GET /games/predict/{homeTeam}/{awayTeam}
 
@@ -45,12 +49,16 @@ It's done using "rating_prob1" in the CSV file (for the home team) on the most r
 **Example:** `http://localhost:8080/games/predict/STL/CHC`  
 ![exemple](images/1.png)
 
+---
+
 ### GET /games/count
 
 Returns the total number of games in the database.
 
 **Example:** `http://localhost:8080/games/count`  
 ![exemple](images/4.png)
+
+---
 
 ### GET /games/history/{homeTeam}
 
@@ -59,6 +67,8 @@ Returns the game history for the specified home team.
 **Example:** `http://localhost:8080/games/history/HOU`  
 ![exemple](images/3.png)
 
+---
+
 ### GET /games/highscore
 
 Returns the game with the highest home team ELO score.
@@ -66,12 +76,16 @@ Returns the game with the highest home team ELO score.
 **Example:** `http://localhost:8080/games/highscore`  
 ![exemple](images/5.png)
 
+---
+
 ### GET /games/lowscore
 
 Returns the game with the lowest home team ELO score.
 
 **Example:** `http://localhost:8080/games/lowscore`  
 ![exemple](images/6.png)
+
+---
 
 # Team Members
 Vincent MARGUET, Logan LE LAY, Michaël NASS, Loïc TRÉHIN (M1-SE2)
