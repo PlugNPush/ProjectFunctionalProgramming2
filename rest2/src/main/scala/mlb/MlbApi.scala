@@ -47,8 +47,10 @@ object MlbApi extends ZIOAppDefault {
         res: Response = latestGameResponse(game)
       } yield res
     case Method.GET -> Root / "game" / "predict" / homeTeam / awayTeam =>
-      // FIXME : implement correct logic and response
-      ZIO.succeed(Response.text(s"$homeTeam vs $awayTeam win probability: 0.0"))
+      for {
+        game: Option[Game] <- latest(HomeTeam(homeTeam), AwayTeam(awayTeam))
+        res: Response = predictGameResponse(game)
+      } yield res
     case Method.GET -> Root / "games" / "count" =>
       for {
         count: Option[Int] <- count
@@ -57,8 +59,10 @@ object MlbApi extends ZIOAppDefault {
     case Method.GET -> Root / "games" / "history" / homeTeam =>
       import zio.json.EncoderOps
       import Game._
-      // FIXME: implement correct database request
-      ZIO.succeed(Response.json(games.toJson).withStatus(Status.Ok))
+      for {
+        games: Chunk[Game] <- history(HomeTeam(homeTeam))
+        res: Response = historyResponse(games.toList)
+      } yield res
     case _ =>
       ZIO.succeed(Response.text("Not Found").withStatus(Status.NotFound))
   }.withDefaultErrorResponse
@@ -88,6 +92,19 @@ object ApiService {
     game match
       case Some(g) => Response.json(g.toJson).withStatus(Status.Ok)
       case None => Response.text("No game found in historical data").withStatus(Status.NotFound)
+  }
+
+  def predictGameResponse(game: Option[Game]): Response = {
+    println(game)
+    game match
+      case Some(g) => Response.text(s"${g.homeTeam} vs ${g.awayTeam} win probability: ${g.homeRatingProb}").withStatus(Status.Ok)
+      case None => Response.text("No game found in historical data").withStatus(Status.NotFound)
+  }
+
+  def historyResponse(games: List[Game]): Response = {
+    games match
+      case Nil => Response.text("No game found in historical data").withStatus(Status.NotFound)
+      case _ => Response.json(games.toJson).withStatus(Status.Ok)
   }
 
   def importGames(): ZIO[ZConnectionPool, Throwable, Response] = {
@@ -178,6 +195,14 @@ object DataService {
     transaction {
       selectOne(
         sql"SELECT date, season_year, playoff_round, home_team, away_team, score1, score2, elo1_post, elo2_post, rating_prob1, rating_prob2 FROM games WHERE home_team = ${HomeTeam.unapply(homeTeam)} AND away_team = ${AwayTeam.unapply(awayTeam)} ORDER BY date DESC LIMIT 1".as[Game]
+      )
+    }
+  }
+
+  def history(homeTeam: HomeTeam): ZIO[ZConnectionPool, Throwable, Chunk[Game]] = {
+    transaction {
+      selectAll(
+        sql"SELECT date, season_year, playoff_round, home_team, away_team, score1, score2, elo1_post, elo2_post, rating_prob1, rating_prob2 FROM games WHERE home_team = ${HomeTeam.unapply(homeTeam)} OR away_team = ${HomeTeam.unapply(homeTeam)} ORDER BY date DESC".as[Game]
       )
     }
   }
