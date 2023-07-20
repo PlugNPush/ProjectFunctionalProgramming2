@@ -3,8 +3,8 @@
 
 ## Major League API Documentation
 
-This is the API documentation for the Major League API project. The API provides several endpoints for retrieving game data and statistics using ELO stats for scoring and MLB stats for prediction.
-All Teams names are represented by 3 letters code.
+This is the API documentation for the Major League API project. The API provides several endpoints for retrieving game data and statistics using ELO stats for scoring and MLB stats for prediction.  
+All Teams names are represented by 3 letters code.  
 The API can be accessed at `http://localhost:8080`.
 
 ## Running the Project
@@ -24,17 +24,17 @@ After running these commands, the API will be accessible at `http://localhost:80
 
 ### GET /init
 
-Imports game data from a CSV file.
-It's already done automatically when you run the project firt.
-Can be useful if you decide to modify some data.
+Imports game data from a CSV file.  
+It's already done automatically when you run the project firt.  
+Can be useful if you decide to modify some data.  
 
 **Example:** `http://localhost:8080/init`
 
 ### GET /games/latest/{homeTeam}/{awayTeam}
 
-Returns the most recent game played between the specified home and away teams.
+Returns the most recent game played between the specified home and away teams.  
 
-**Example:** `http://localhost:8080/games/latest/SEA/ANA`
+**Example:** `http://localhost:8080/games/latest/SEA/ANA`  
 ![exemple](images/2.png)
 
 ### GET /games/predict/{homeTeam}/{awayTeam}
@@ -42,35 +42,35 @@ Returns the most recent game played between the specified home and away teams.
 Returns a prediction for the next game between the specified home and away teams.
 It's done using "rating_prob1" in the CSV file (for the home team) on the most recent match listed.
 
-**Example:** `http://localhost:8080/games/predict/STL/CHC`
+**Example:** `http://localhost:8080/games/predict/STL/CHC`  
 ![exemple](images/1.png)
 
 ### GET /games/count
 
 Returns the total number of games in the database.
 
-**Example:** `http://localhost:8080/games/count`
+**Example:** `http://localhost:8080/games/count`  
 ![exemple](images/4.png)
 
 ### GET /games/history/{homeTeam}
 
 Returns the game history for the specified home team.
 
-**Example:** `http://localhost:8080/games/history/HOU`
+**Example:** `http://localhost:8080/games/history/HOU`  
 ![exemple](images/3.png)
 
 ### GET /games/highscore
 
 Returns the game with the highest home team ELO score.
 
-**Example:** `http://localhost:8080/games/highscore`
+**Example:** `http://localhost:8080/games/highscore`  
 ![exemple](images/5.png)
 
 ### GET /games/lowscore
 
 Returns the game with the lowest home team ELO score.
 
-**Example:** `http://localhost:8080/games/lowscore`
+**Example:** `http://localhost:8080/games/lowscore`  
 ![exemple](images/6.png)
 
 # Team Members
