@@ -129,14 +129,12 @@ object ApiService {
   }
 
   def highscoreResponse(game: Option[Game]): Response = {
-    println(game)
     game match
       case Some(g) => Response.text(s"${g.homeTeam} high score: ${g.homeElo}").withStatus(Status.Ok)
       case None => Response.text("No game found in historical data").withStatus(Status.NotFound)
   }
 
   def lowscoreResponse(game: Option[Game]): Response = {
-    println(game)
     game match
       case Some(g) => Response.text(s"${g.homeTeam} low score: ${g.homeElo}").withStatus(Status.Ok)
       case None => Response.text("No game found in historical data").withStatus(Status.NotFound)
@@ -149,7 +147,7 @@ object ApiService {
       _ <- Console.printLine("CSV opened")
       s <- ZStream.fromIterator(reader.iteratorWithHeaders).map[Game](row => 
         Game(
-          if (row("date").isEmpty) GameDate(LocalDate.parse("1900-01-01")) else GameDate(LocalDate.parse(row("date"))),
+          if (row("date").isEmpty) GameDate(LocalDate.parse("0000-01-01")) else GameDate(LocalDate.parse(row("date"))),
           if (row("season").isEmpty) SeasonYear(-1) else SeasonYear(row("season").toInt),
           if (row("playoff").isEmpty) PlayoffRound("none") else PlayoffRound(row("playoff")),
           if (row("team1").isEmpty) HomeTeam("XXX") else HomeTeam(row("team1")),
