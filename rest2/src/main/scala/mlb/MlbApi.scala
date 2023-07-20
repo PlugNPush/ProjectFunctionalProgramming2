@@ -42,13 +42,13 @@ object MlbApi extends ZIOAppDefault {
         res: Response <- importGames()
       } yield res
       )
-    case Method.GET -> Root / "game" / "latest" / homeTeam / awayTeam =>
+    case Method.GET -> Root / "games" / "latest" / homeTeam / awayTeam =>
       for {
         game: Option[Game] <- latest(HomeTeam(homeTeam), AwayTeam(awayTeam))
         _ <- Console.printLine("For " + homeTeam + " vs " + awayTeam)
         res: Response = latestGameResponse(game)
       } yield res
-    case Method.GET -> Root / "game" / "predict" / homeTeam / awayTeam =>
+    case Method.GET -> Root / "games" / "predict" / homeTeam / awayTeam =>
       for {
         game: Option[Game] <- latest(HomeTeam(homeTeam), AwayTeam(awayTeam))
         res: Response = predictGameResponse(game)
@@ -219,9 +219,10 @@ object DataService {
       )
     }
   }
-    def diag(sql: String): ZIO[ZConnectionPool, Throwable, Option[Int]] = transaction {
-      selectOne(
-        sql"SELECT COUNT(*) FROM games ${sql}".as[Int]
-      )
-    }
+
+  def diag(sql: String): ZIO[ZConnectionPool, Throwable, Option[Int]] = transaction {
+    selectOne(
+      sql"SELECT COUNT(*) FROM games ${sql}".as[Int]
+    )
+  }
 }
