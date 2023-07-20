@@ -74,22 +74,20 @@ object SeasonYears {
 
 object PlayoffRounds {
 
-  opaque type PlayoffRound <: Int = Int
+  opaque type PlayoffRound = String
 
   object PlayoffRound {
 
-    def apply(round: Int): PlayoffRound = round
+    def apply(round: String): PlayoffRound = round
 
-    def safe(value: Int): Option[PlayoffRound] =
-      Option.when(value >= 1 && value <= 4)(value)
-
-    def unapply(playoffRound: PlayoffRound): Int = playoffRound
+    def unapply(playoffRound: PlayoffRound): String = playoffRound
   }
 
   given CanEqual[PlayoffRound, PlayoffRound] = CanEqual.derived
-  implicit val playoffRoundEncoder: JsonEncoder[PlayoffRound] = JsonEncoder.int
-  implicit val playoffRoundDEncoder: JsonDecoder[PlayoffRound] = JsonDecoder.int
+  implicit val playoffRoundEncoder: JsonEncoder[PlayoffRound] = JsonEncoder.string
+  implicit val playoffRoundDEncoder: JsonDecoder[PlayoffRound] = JsonDecoder.string
 }
+
 
 import GameDates.*
 import PlayoffRounds.*
