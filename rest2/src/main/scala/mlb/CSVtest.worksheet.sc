@@ -266,7 +266,7 @@ object Game {
 // Create a CSVReader
 println("Importing CSV to Database")
 println("Initializing Reader CSV")
-var reader = CSVReader.open("mlb_elo.csv")
+var reader = CSVReader.open("mlb_elo_latest.csv")
 println("Initialized Reader CSV")
 
 var games = List[Game]()
@@ -294,3 +294,6 @@ println("Initialized Games")
 games
 
 println(games.last.toRow)
+
+var homeTeam = HomeTeam("XXX")
+HomeTeam.unapply(homeTeam)

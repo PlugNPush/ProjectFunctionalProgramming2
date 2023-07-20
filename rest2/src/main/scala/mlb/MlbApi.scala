@@ -35,6 +35,7 @@ object MlbApi extends ZIOAppDefault {
   }.withDefaultErrorResponse
 
   val endpoints: App[ZConnectionPool] = Http.collectZIO[Request] {
+
     case Method.GET -> Root / "init" =>
       (for {
         // Create a CSVReader
@@ -44,6 +45,7 @@ object MlbApi extends ZIOAppDefault {
     case Method.GET -> Root / "game" / "latest" / homeTeam / awayTeam =>
       for {
         game: Option[Game] <- latest(HomeTeam(homeTeam), AwayTeam(awayTeam))
+        _ <- Console.printLine("For " + homeTeam + " vs " + awayTeam)
         res: Response = latestGameResponse(game)
       } yield res
     case Method.GET -> Root / "game" / "predict" / homeTeam / awayTeam =>
@@ -63,12 +65,23 @@ object MlbApi extends ZIOAppDefault {
         games: Chunk[Game] <- history(HomeTeam(homeTeam))
         res: Response = historyResponse(games.toList)
       } yield res
+
+    case request @ Method.POST -> Root / "diag" / "sql" / "select" =>
+      for {
+        _ <- Console.printLine("Request received")
+        sql <- request.body.asString(java.nio.charset.StandardCharsets.UTF_8)
+        _ <- Console.printLine(sql)
+        rq <- diag(sql)
+        _ <- Console.printLine(rq)
+        res: Response = countResponse(rq)
+      } yield res
     case _ =>
       ZIO.succeed(Response.text("Not Found").withStatus(Status.NotFound))
   }.withDefaultErrorResponse
 
   val appLogic: ZIO[ZConnectionPool & Server, Throwable, Unit] = for {
     _ <- create
+    _ <- importGames()
     _ <- Server.serve[ZConnectionPool](static ++ endpoints)
   } yield ()
 
@@ -206,4 +219,9 @@ object DataService {
       )
     }
   }
+    def diag(sql: String): ZIO[ZConnectionPool, Throwable, Option[Int]] = transaction {
+      selectOne(
+        sql"SELECT COUNT(*) FROM games ${sql}".as[Int]
+      )
+    }
 }
