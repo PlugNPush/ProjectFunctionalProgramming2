@@ -15,7 +15,7 @@ To run the project, use the following commands:
 sbt
 project rest2
 compile
-reStart
+~reStart
 ```
 
 After running these commands, the API will be accessible at `http://localhost:8080`.
